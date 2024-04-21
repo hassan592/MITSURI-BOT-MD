@@ -1,57 +1,57 @@
-import { canLevelUp, xpRange } from '../lib/levelling.js'
-import { levelup } from '../lib/canvas.js'
-import can from 'knights-canvas'
+import { xpRange } from '../lib/levelling.js';
+import Canvacord from 'canvacord';
 
 let handler = async (m, { conn }) => {
+  let who = m.quoted ? m.quoted.sender : m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.fromMe ? conn.user.jid : m.sender;
 
-function test(num, size) {
-var s = num+''
-while (s.length < size) s = '0' + s
-return s
-}
+  if (!(who in global.db.data.users)) throw `*〘لم يتم العثور على المستخدم في قاعدة البيانات الخاصة بي〙*`;
 
-let user = global.db.data.users[m.sender]
-let name = conn.getName(m.sender)
-let whoPP = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.fromMe ? conn.user.jid : m.sender
-let ppBot = await conn.profilePictureUrl(whoPP, 'image').catch((_) => 'https://telegra.ph/file/24fa902ead26340f3df2c.png')
+  let pp = await conn.profilePictureUrl(who, 'image').catch(_ => './Menu2.jpg');
+  let user = global.db.data.users[who];
+  let { exp, level, role } = global.db.data.users[who];
+  let { min, xp } = xpRange(user.level, global.multiplier);
+  let username = conn.getName(who);
 
-let image = await new can.Rank().setAvatar(ppBot).setUsername(name ? name.replaceAll('\n','') : '-').setBg('https://telegra.ph/file/3cb040ecc09693d1c21de.jpg').setNeedxp(wm).setCurrxp(`${user.exp}`).setLevel(`${user.level}`).setRank('https://i.ibb.co/Wn9cvnv/FABLED.png').toAttachment()
-let data = image.toBuffer()
+  let crxp = exp - min
+  let customBackground  = './song.jpg'
+  let requiredXpToLevelUp = xp
 
-let { role } = global.db.data.users[m.sender]
-if (!canLevelUp(user.level, user.exp, global.multiplier)) {
-let { min, xp, max } = xpRange(user.level, global.multiplier)
+  const card = await new Canvacord.Rank()
+  .setAvatar(pp)
+  .setLevel(level)
+  .setCurrentXP(crxp) 
+  .setRequiredXP(requiredXpToLevelUp) 
+  .setProgressBar('#db190b', 'COLOR') // Set progress bar color here
+  .setDiscriminator(who.substring(3, 7))
+  .setCustomStatusColor('#db190b')
+  .setLevelColor('#FFFFFF', '#FFFFFF')
+  .setOverlay('#000000')
+  .setUsername(username)
+  .setBackground('IMAGE', customBackground)
+  .setRank(level, 'LEVEL', false)
+  .renderEmojis(true)
+  .build();
 
-let le = `*⌝الاسم👨🏻‍💻⌞* ${name}
+  const str = `*┓⌯━ ── • ♬ • ── ━⌯*
+*┇⌊الاسـم🪪⌉: ${username}*
+*┇*
+*┇⌊المستوي👩🏻‍💻⌉:${user.level}*
+*┇*
+*┇⌊الخـبـرة🧪⌉: ${crxp} / ${requiredXpToLevelUp}*
+*┇*
+*┇⌊الرتـبـة🥷🏻⌉: ${role}*
+*┛⌯━ ── • ♬ • ── ━⌯*
+*كلما تفاعلت كلما زاد مستواك*`
 
-*⌝المستوي⬆️⌞: ${user.level}*
-*⌝الخبرة🕵🏻‍♂️⌞: ${user.exp - min} / ${xp}*
+  try {
+    conn.sendFile(m.chat, card, 'rank.jpg', str, m, false, { mentions: [who] });
+    m.react('🍷');
+  } catch (error) {
+    console.error(error);
+  }}
 
-No es suficiente XP *${max - user.exp}* ¡De nuevo! ✨`
-await conn.sendMessage(m.chat, { image: data, caption: le }, { quoted: m })
-}
-let before = user.level * 1
-while (canLevelUp(user.level, user.exp, global.multiplier)) user.level++
-if (before !== user.level) {
+handler.help = ['لفل'];
+handler.tags = ['رانك'];
+handler.command = ['لفل'];
 
-let str = `🎊 F E L I C I T A C I O N E S 🎊 
-
-*${before}* ➔ *${user.level}* [ *${user.role}* ]
-
-• 🧬 Nivel anterior : ${before}
-• 🧬 Nuevos niveles : ${user.level}
-• 📅 Fecha : ${new Date().toLocaleString('id-ID')}
-
-*Nota:* _Cuanto más a menudo interactúes con el bot, mayor será tu nivel_`
-try {
-await conn.sendMessage(m.chat, { image: data, caption: str }, { quoted: m })
-} catch (e) {
-m.reply(str)
-}}
-
-}
-handler.help = ['لفل']
-handler.tags = ['بنك']
-handler.command = ['لفل', 'مستوي', 'المستوي', 'level']
-
-export default handler
+export default handler;
