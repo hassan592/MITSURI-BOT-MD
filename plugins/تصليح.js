@@ -8,7 +8,7 @@ const handler = async (m, { conn, usedPrefix }) => {
     return conn.sendMessage(m.chat, {text: '*[❗] استخدم هذا الأمر مباشرة في العدد الرئيسي من الروبوت*'}, {quoted: m});
   }
   const chatId = m.isGroup ? [m.chat, m.sender] : [m.sender];
-  const sessionPath = 'MyvenomSession';
+  const sessionPath = 'MITSURI-BOT';
   try {
     const files = await fs.readdir(sessionPath);
     let filesDeleted = 0;
@@ -34,5 +34,5 @@ const handler = async (m, { conn, usedPrefix }) => {
 };
 handler.help = ['fixmsgespera'];
 handler.tags = ['fix'];
-handler.command = /^(تصليح|ds)$/i;
+handler.command = /^(تصليح|صلح)$/i;
 export default handler;
